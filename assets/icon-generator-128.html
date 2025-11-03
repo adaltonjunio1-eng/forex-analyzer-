@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator 128x128</title>
+    <style>
+        body { margin: 0; padding: 20px; background: #000; }
+        canvas { border: 1px solid #333; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="128" height="128"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Background gradient
+        const gradient = ctx.createLinearGradient(0, 0, 128, 128);
+        gradient.addColorStop(0, '#0052ff');
+        gradient.addColorStop(1, '#001a66');
+        
+        // Draw background with rounded corners
+        const radius = 24; // 96/512 ratio
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.roundRect(0, 0, 128, 128, radius);
+        ctx.fill();
+        
+        // Chart area
+        const chartX = 16;
+        const chartY = 32;
+        const chartW = 96;
+        const chartH = 64;
+        
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(chartX, chartY, chartW, chartH, 4);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Simple candlestick representation
+        const candleWidth = 4;
+        const candleSpacing = 12;
+        
+        // Green candles
+        ctx.fillStyle = '#00ff88';
+        ctx.fillRect(chartX + candleSpacing, chartY + 16, candleWidth, 24);
+        ctx.fillRect(chartX + candleSpacing * 3, chartY + 8, candleWidth, 32);
+        ctx.fillRect(chartX + candleSpacing * 5, chartY + 12, candleWidth, 24);
+        
+        // Red candles
+        ctx.fillStyle = '#ff4444';
+        ctx.fillRect(chartX + candleSpacing * 2, chartY + 20, candleWidth, 16);
+        ctx.fillRect(chartX + candleSpacing * 4, chartY + 24, candleWidth, 20);
+        ctx.fillRect(chartX + candleSpacing * 6, chartY + 28, candleWidth, 12);
+        
+        // Currency symbol
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 8.96px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('FX', 64, 25.6);
+        
+        // AI indicator
+        ctx.fillStyle = '#00ff88';
+        ctx.beginPath();
+        ctx.arc(100, 20, 5, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 4px Arial';
+        ctx.fillText('AI', 100, 22);
+        
+        // Title
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 6px Arial';
+        ctx.fillText('FOREX', 64, 113.92);
+        
+        ctx.font = '4px Arial';
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.fillText('ANALYZER', 64, 120.32);
+        
+        // Download function
+        setTimeout(() => {
+            const link = document.createElement('a');
+            link.download = 'icon-128.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+# Dependências
+node_modules/
+npm-debug.log*
+
+# Arquivos temporários
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# Logs
+*.log
+logs/
+
+# Configurações do IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Arquivos de sistema
+*.sys
+*.bak
+
+# Cache
+.cache/
+.npm/
+
+# Arquivos de desenvolvimento
+test-*.html
+debug-*.html

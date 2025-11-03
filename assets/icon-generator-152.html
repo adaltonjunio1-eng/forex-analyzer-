@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator 152x152</title>
+    <style>
+        body { margin: 0; padding: 20px; background: #000; }
+        canvas { border: 1px solid #333; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="152" height="152"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Background gradient
+        const gradient = ctx.createLinearGradient(0, 0, 152, 152);
+        gradient.addColorStop(0, '#0052ff');
+        gradient.addColorStop(1, '#001a66');
+        
+        // Draw background with rounded corners
+        const radius = 28.5; // 96/512 ratio
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.roundRect(0, 0, 152, 152, radius);
+        ctx.fill();
+        
+        // Chart area
+        const chartX = 19;
+        const chartY = 38;
+        const chartW = 114;
+        const chartH = 76;
+        
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(chartX, chartY, chartW, chartH, 4.75);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Simple candlestick representation
+        const candleWidth = 4.75;
+        const candleSpacing = 14.25;
+        
+        // Green candles
+        ctx.fillStyle = '#00ff88';
+        ctx.fillRect(chartX + candleSpacing, chartY + 19, candleWidth, 28.5);
+        ctx.fillRect(chartX + candleSpacing * 3, chartY + 9.5, candleWidth, 38);
+        ctx.fillRect(chartX + candleSpacing * 5, chartY + 14.25, candleWidth, 28.5);
+        
+        // Red candles
+        ctx.fillStyle = '#ff4444';
+        ctx.fillRect(chartX + candleSpacing * 2, chartY + 23.75, candleWidth, 19);
+        ctx.fillRect(chartX + candleSpacing * 4, chartY + 28.5, candleWidth, 23.75);
+        ctx.fillRect(chartX + candleSpacing * 6, chartY + 33.25, candleWidth, 14.25);
+        
+        // Currency symbol
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 10.64px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('FX', 76, 30.400000000000002);
+        
+        // AI indicator
+        ctx.fillStyle = '#00ff88';
+        ctx.beginPath();
+        ctx.arc(118.75, 23.75, 5.9375, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 4.75px Arial';
+        ctx.fillText('AI', 118.75, 26.125);
+        
+        // Title
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 7.125px Arial';
+        ctx.fillText('FOREX', 76, 135.28);
+        
+        ctx.font = '4.75px Arial';
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.fillText('ANALYZER', 76, 142.88);
+        
+        // Download function
+        setTimeout(() => {
+            const link = document.createElement('a');
+            link.download = 'icon-152.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }, 1000);
+    </script>
+</body>
+</html>

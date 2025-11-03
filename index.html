@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Forex Candle Strength Analyzer</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="Forex Analyzer">
+    <meta name="description" content="Aplicativo de análise de força de candles no mercado forex com indicadores técnicos em tempo real">
+    <meta name="keywords" content="forex, trading, candlestick, analysis, technical indicators, PWA">
+    <meta name="author" content="Forex Analyzer Team">
+    
+    <!-- PWA Display -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Forex Analyzer">
+    <meta name="msapplication-TileColor" content="#0052ff">
+    <meta name="msapplication-tap-highlight" content="no">
+    
+    <!-- Theme Colors -->
+    <meta name="theme-color" content="#0052ff">
+    <meta name="msapplication-navbutton-color" content="#0052ff">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#0052ff">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="assets/icon-192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="assets/icon-512.png">
+    <link rel="shortcut icon" href="assets/icon-192.png">
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="css/style.css" as="style">
+    <link rel="preload" href="js/app.js" as="script">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/chart.js" as="script">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>Forex Analyzer</span>
+            </div>
+            <nav class="nav">
+                <ul class="nav-list">
+                    <li><a href="#dashboard" class="nav-link active">Dashboard</a></li>
+                    <li><a href="#analysis" class="nav-link">Análise</a></li>
+                    <li><a href="#signals" class="nav-link">Sinais</a></li>
+                    <li><a href="#settings" class="nav-link">Configurações</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-menu">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section active">
+            <div class="container">
+                <h1 class="section-title">Dashboard de Análise Forex</h1>
+                
+                <!-- Currency Selector -->
+                <div class="currency-selector">
+                    <select id="currencyPair" class="currency-select">
+                        <option value="EURUSD">EUR/USD</option>
+                        <option value="GBPUSD">GBP/USD</option>
+                        <option value="USDJPY">USD/JPY</option>
+                        <option value="USDCHF">USD/CHF</option>
+                        <option value="AUDUSD">AUD/USD</option>
+                        <option value="USDCAD">USD/CAD</option>
+                    </select>
+                    <select id="timeframe" class="timeframe-select">
+                        <option value="M1">1 Minuto</option>
+                        <option value="M5">5 Minutos</option>
+                        <option value="M15">15 Minutos</option>
+                        <option value="M30">30 Minutos</option>
+                        <option value="H1" selected>1 Hora</option>
+                        <option value="H4">4 Horas</option>
+                        <option value="D1">1 Dia</option>
+                    </select>
+                    <button id="analyzeBtn" class="analyze-btn">
+                        <i class="fas fa-search"></i>
+                        Analisar
+                    </button>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-trending-up"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="currentPrice">1.0850</h3>
+                            <p>Preço Atual</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="candleStrength">75%</h3>
+                            <p>Força do Candle</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-signal"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="signalStatus">COMPRA</h3>
+                            <p>Sinal Atual</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-percent"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="rsiValue">65.2</h3>
+                            <p>RSI</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Container -->
+                <div class="chart-container">
+                    <canvas id="forexChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analysis Section -->
+        <section id="analysis" class="section">
+            <div class="container">
+                <h1 class="section-title">Análise Técnica Detalhada</h1>
+                
+                <div class="analysis-grid">
+                    <!-- Candle Pattern Analysis -->
+                    <div class="analysis-card">
+                        <h3><i class="fas fa-candle-holder"></i> Padrões de Candle</h3>
+                        <div id="candlePatterns" class="patterns-list">
+                            <div class="pattern-item">
+                                <span class="pattern-name">Doji</span>
+                                <span class="pattern-strength strong">Forte</span>
+                            </div>
+                            <div class="pattern-item">
+                                <span class="pattern-name">Hammer</span>
+                                <span class="pattern-strength medium">Médio</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Technical Indicators -->
+                    <div class="analysis-card">
+                        <h3><i class="fas fa-chart-line"></i> Indicadores Técnicos</h3>
+                        <div class="indicators-list">
+                            <div class="indicator-item">
+                                <span class="indicator-name">RSI (14)</span>
+                                <span class="indicator-value" id="rsiIndicator">65.2</span>
+                                <div class="indicator-bar">
+                                    <div class="indicator-fill" style="width: 65.2%"></div>
+                                </div>
+                            </div>
+                            <div class="indicator-item">
+                                <span class="indicator-name">MACD</span>
+                                <span class="indicator-value" id="macdIndicator">+0.0025</span>
+                                <div class="indicator-status bullish">Bullish</div>
+                            </div>
+                            <div class="indicator-item">
+                                <span class="indicator-name">Bollinger</span>
+                                <span class="indicator-value" id="bollingerIndicator">Meio</span>
+                                <div class="indicator-status neutral">Neutral</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Volume Analysis -->
+                    <div class="analysis-card">
+                        <h3><i class="fas fa-volume-up"></i> Análise de Volume</h3>
+                        <div class="volume-chart">
+                            <canvas id="volumeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Support & Resistance -->
+                    <div class="analysis-card">
+                        <h3><i class="fas fa-layer-group"></i> Suporte & Resistência</h3>
+                        <div class="levels-list">
+                            <div class="level-item resistance">
+                                <span class="level-type">Resistência</span>
+                                <span class="level-price">1.0875</span>
+                                <span class="level-strength">Forte</span>
+                            </div>
+                            <div class="level-item support">
+                                <span class="level-type">Suporte</span>
+                                <span class="level-price">1.0825</span>
+                                <span class="level-strength">Médio</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Signals Section -->
+        <section id="signals" class="section">
+            <div class="container">
+                <h1 class="section-title">Sinais de Trading</h1>
+                
+                <div class="signals-header">
+                    <div class="signal-filters">
+                        <button class="filter-btn active" data-filter="all">Todos</button>
+                        <button class="filter-btn" data-filter="buy">Compra</button>
+                        <button class="filter-btn" data-filter="sell">Venda</button>
+                        <button class="filter-btn" data-filter="neutral">Neutro</button>
+                    </div>
+                    <div class="signal-settings">
+                        <button id="alertsToggle" class="alerts-btn">
+                            <i class="fas fa-bell"></i>
+                            Alertas: ON
+                        </button>
+                    </div>
+                </div>
+
+                <div class="signals-list" id="signalsList">
+                    <!-- Signals will be dynamically added here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settings" class="section">
+            <div class="container">
+                <h1 class="section-title">Configurações</h1>
+                
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3><i class="fas fa-cog"></i> Configurações Gerais</h3>
+                        <div class="setting-item">
+                            <label for="autoRefresh">Atualização Automática</label>
+                            <input type="checkbox" id="autoRefresh" checked>
+                        </div>
+                        <div class="setting-item">
+                            <label for="refreshInterval">Intervalo (segundos)</label>
+                            <input type="number" id="refreshInterval" value="30" min="5" max="300">
+                        </div>
+                        <div class="setting-item">
+                            <label for="soundAlerts">Alertas Sonoros</label>
+                            <input type="checkbox" id="soundAlerts">
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><i class="fas fa-palette"></i> Aparência</h3>
+                        <div class="setting-item">
+                            <label for="theme">Tema</label>
+                            <select id="theme">
+                                <option value="dark">Escuro</option>
+                                <option value="light">Claro</option>
+                                <option value="auto">Automático</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="chartType">Tipo de Gráfico</label>
+                            <select id="chartType">
+                                <option value="candlestick">Candlestick</option>
+                                <option value="line">Linha</option>
+                                <option value="bar">Barras</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><i class="fas fa-calculator"></i> Indicadores</h3>
+                        <div class="setting-item">
+                            <label for="rsiPeriod">Período RSI</label>
+                            <input type="number" id="rsiPeriod" value="14" min="5" max="50">
+                        </div>
+                        <div class="setting-item">
+                            <label for="macdFast">MACD Rápido</label>
+                            <input type="number" id="macdFast" value="12" min="5" max="30">
+                        </div>
+                        <div class="setting-item">
+                            <label for="macdSlow">MACD Lento</label>
+                            <input type="number" id="macdSlow" value="26" min="15" max="50">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Analisando dados...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/indicators.js"></script>
+    <script src="js/patterns.js"></script>
+    <script src="js/signals.js"></script>
+    <script src="js/chart.js"></script>
+    <script src="js/app.js"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        // Register Service Worker for PWA functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((registration) => {
+                        console.log('✅ Service Worker registered successfully:', registration.scope);
+                        
+                        // Check for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New version available
+                                    if (confirm('Nova versão disponível! Atualizar agora?')) {
+                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        console.log('❌ Service Worker registration failed:', error);
+                    });
+            });
+        }
+        
+        // PWA Install Prompt
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('💾 PWA install prompt triggered');
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show custom install button
+            const installBtn = document.createElement('button');
+            installBtn.textContent = '📱 Instalar App';
+            installBtn.className = 'install-btn';
+            installBtn.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: #0052ff;
+                color: white;
+                border: none;
+                padding: 12px 20px;
+                border-radius: 25px;
+                font-weight: bold;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(0, 82, 255, 0.3);
+                z-index: 1000;
+                font-size: 14px;
+                transition: all 0.3s ease;
+            `;
+            
+            installBtn.addEventListener('mouseenter', () => {
+                installBtn.style.transform = 'scale(1.05)';
+                installBtn.style.boxShadow = '0 6px 20px rgba(0, 82, 255, 0.4)';
+            });
+            
+            installBtn.addEventListener('mouseleave', () => {
+                installBtn.style.transform = 'scale(1)';
+                installBtn.style.boxShadow = '0 4px 15px rgba(0, 82, 255, 0.3)';
+            });
+            
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    
+                    if (outcome === 'accepted') {
+                        console.log('✅ PWA installation accepted');
+                        if (typeof Utils !== 'undefined') {
+                            Utils.showToast('App instalado com sucesso!', 'success');
+                        }
+                    } else {
+                        console.log('❌ PWA installation declined');
+                    }
+                    
+                    deferredPrompt = null;
+                    installBtn.remove();
+                }
+            });
+            
+            document.body.appendChild(installBtn);
+            
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                if (installBtn.parentNode) {
+                    installBtn.style.opacity = '0';
+                    setTimeout(() => installBtn.remove(), 300);
+                }
+            }, 10000);
+        });
+        
+        // PWA Installation Success
+        window.addEventListener('appinstalled', () => {
+            console.log('🎉 PWA installed successfully');
+            if (typeof Utils !== 'undefined') {
+                Utils.showToast('Forex Analyzer instalado!', 'success');
+            }
+        });
+        
+        // Handle offline/online status
+        window.addEventListener('online', () => {
+            console.log('🌐 Back online');
+            if (typeof Utils !== 'undefined') {
+                Utils.showToast('Conectado novamente!', 'success');
+            }
+        });
+        
+        window.addEventListener('offline', () => {
+            console.log('📵 Gone offline');
+            if (typeof Utils !== 'undefined') {
+                Utils.showToast('Modo offline ativado', 'warning');
+            }
+        });
+    </script>
+</body>
+</html>

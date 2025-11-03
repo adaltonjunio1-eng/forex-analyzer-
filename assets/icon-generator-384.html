@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator 384x384</title>
+    <style>
+        body { margin: 0; padding: 20px; background: #000; }
+        canvas { border: 1px solid #333; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="384" height="384"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Background gradient
+        const gradient = ctx.createLinearGradient(0, 0, 384, 384);
+        gradient.addColorStop(0, '#0052ff');
+        gradient.addColorStop(1, '#001a66');
+        
+        // Draw background with rounded corners
+        const radius = 72; // 96/512 ratio
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.roundRect(0, 0, 384, 384, radius);
+        ctx.fill();
+        
+        // Chart area
+        const chartX = 48;
+        const chartY = 96;
+        const chartW = 288;
+        const chartH = 192;
+        
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(chartX, chartY, chartW, chartH, 12);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Simple candlestick representation
+        const candleWidth = 12;
+        const candleSpacing = 36;
+        
+        // Green candles
+        ctx.fillStyle = '#00ff88';
+        ctx.fillRect(chartX + candleSpacing, chartY + 48, candleWidth, 72);
+        ctx.fillRect(chartX + candleSpacing * 3, chartY + 24, candleWidth, 96);
+        ctx.fillRect(chartX + candleSpacing * 5, chartY + 36, candleWidth, 72);
+        
+        // Red candles
+        ctx.fillStyle = '#ff4444';
+        ctx.fillRect(chartX + candleSpacing * 2, chartY + 60, candleWidth, 48);
+        ctx.fillRect(chartX + candleSpacing * 4, chartY + 72, candleWidth, 60);
+        ctx.fillRect(chartX + candleSpacing * 6, chartY + 84, candleWidth, 36);
+        
+        // Currency symbol
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 26.880000000000003px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('FX', 192, 76.80000000000001);
+        
+        // AI indicator
+        ctx.fillStyle = '#00ff88';
+        ctx.beginPath();
+        ctx.arc(300, 60, 15, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText('AI', 300, 66);
+        
+        // Title
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 18px Arial';
+        ctx.fillText('FOREX', 192, 341.76);
+        
+        ctx.font = '12px Arial';
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.fillText('ANALYZER', 192, 360.96);
+        
+        // Download function
+        setTimeout(() => {
+            const link = document.createElement('a');
+            link.download = 'icon-384.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }, 1000);
+    </script>
+</body>
+</html>

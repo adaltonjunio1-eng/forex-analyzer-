@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug - Chart.js Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background: #0a0a0f; color: white; padding: 20px; font-family: Arial; }
+        .chart-container { width: 800px; height: 400px; background: #1a1a2e; padding: 20px; border-radius: 10px; }
+        button { background: #0052ff; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin: 10px; cursor: pointer; }
+        #log { background: #1a1a2e; padding: 15px; border-radius: 8px; margin-top: 20px; height: 200px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Chart.js</h1>
+    <button onclick="testChart()">Test Chart</button>
+    <button onclick="clearLog()">Clear Log</button>
+    
+    <div class="chart-container">
+        <canvas id="debugChart"></canvas>
+    </div>
+    
+    <div id="log"></div>
+
+    <script>
+        function log(msg) {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<div>[${time}] ${msg}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(msg);
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        function testChart() {
+            log('🔧 Testing Chart.js...');
+            
+            try {
+                const canvas = document.getElementById('debugChart');
+                if (!canvas) {
+                    log('❌ Canvas not found');
+                    return;
+                }
+                log('✅ Canvas found');
+
+                const ctx = canvas.getContext('2d');
+                log('✅ Context obtained');
+
+                // Test data
+                const data = [1.0840, 1.0845, 1.0850, 1.0848, 1.0852, 1.0855, 1.0853, 1.0857, 1.0860, 1.0858];
+                const labels = data.map((_, i) => `${i+1}`);
+                
+                log(`✅ Test data generated: ${data.length} points`);
+
+                const chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Test Price',
+                            data: data,
+                            borderColor: '#0052ff',
+                            backgroundColor: 'rgba(0, 82, 255, 0.1)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: '#ffffff' }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: '#b3b3cc' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            },
+                            y: {
+                                ticks: { color: '#b3b3cc' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            }
+                        }
+                    }
+                });
+
+                log('✅ Chart created successfully!');
+                
+                // Test update
+                setTimeout(() => {
+                    const newData = data.map(d => d + (Math.random() - 0.5) * 0.001);
+                    chart.data.datasets[0].data = newData;
+                    chart.update('none');
+                    log('✅ Chart updated successfully!');
+                }, 1000);
+
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+                console.error('Full error:', error);
+            }
+        }
+
+        log('🚀 Debug page loaded');
+        log('📊 Chart.js version: ' + Chart.version);
+    </script>
+</body>
+</html>

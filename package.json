@@ -1,0 +1,38 @@
+{
+  "name": "forex-candle-analyzer",
+  "version": "1.0.0",
+  "description": "Aplicativo de análise de força de candles no mercado forex",
+  "main": "index.html",
+  "scripts": {
+    "start": "live-server --port=3000 --open=/",
+    "dev": "live-server --port=3000 --open=/",
+    "build": "echo 'Build completed - static files ready'",
+    "test": "echo 'No tests specified'",
+    "generate-icons": "node scripts/generate-icons.js"
+  },
+  "keywords": [
+    "forex",
+    "trading",
+    "technical-analysis",
+    "candlestick",
+    "charts",
+    "indicators",
+    "rsi",
+    "macd",
+    "bollinger-bands"
+  ],
+  "author": "Forex Analyzer Team",
+  "license": "MIT",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  },
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/username/forex-candle-analyzer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/username/forex-candle-analyzer/issues"
+  },
+  "homepage": "https://username.github.io/forex-candle-analyzer/"
+}
