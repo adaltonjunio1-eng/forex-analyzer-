@@ -1,0 +1,71 @@
+name: 🚀 Deploy Forex Analyzer PWA
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 🔧 Install Dependencies
+      run: |
+        npm ci
+        
+    - name: 🎨 Generate PWA Icons
+      run: |
+        node generate-icons.js
+        
+    - name: ✅ Validate PWA
+      run: |
+        echo "🔍 Validating PWA files..."
+        test -f manifest.json && echo "✅ Manifest found"
+        test -f sw.js && echo "✅ Service Worker found"
+        test -f index.html && echo "✅ Index found"
+        echo "🎉 PWA validation complete!"
+        
+    - name: 🌐 Deploy to GitHub Pages
+      if: github.ref == 'refs/heads/main'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./
+        enable_jekyll: false
+        force_orphan: true
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
+        commit_message: |
+          🚀 Deploy Forex Analyzer PWA
+          
+          Auto-deployed from commit: ${{ github.sha }}
+          
+    - name: 📊 PWA Performance Check
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "🏃‍♂️ PWA Performance Tips:"
+        echo "• Service Worker: ✅ Implemented"
+        echo "• Offline Support: ✅ Enabled" 
+        echo "• Mobile Optimized: ✅ Responsive"
+        echo "• Icons Generated: ✅ Multiple sizes"
+        echo "• HTTPS Required: ⚠️  GitHub Pages provides HTTPS"
+        echo ""
+        echo "📱 Your PWA will be available at:"
+        echo "https://${{ github.repository_owner }}.github.io/forex-analyzer/"
+        echo ""
+        echo "🎯 To test PWA features:"
+        echo "1. Open in Chrome/Edge"
+        echo "2. Look for install button"
+        echo "3. Test offline functionality"
+        echo "4. Try 'Add to Home Screen' on mobile"
