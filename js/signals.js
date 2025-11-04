@@ -37,6 +37,9 @@ class TradingSignals {
         this.analyzePatterns(signal, patterns);
         this.analyzeStochastic(signal, indicators.stochastic);
         this.analyzeADX(signal, indicators.adx);
+        
+        // NEW: Analyze RSI Divergences
+        const divergence = this.analyzeDivergence(signal, data, indicators);
 
         // Calculate overall signal
         this.calculateOverallSignal(signal);
@@ -65,6 +68,71 @@ class TradingSignals {
         } else if (value <= 40) {
             signal.reasons.push('RSI bearish (<40)');
             this.addBearishPoints(signal, 8);
+        }
+    }
+
+    // Analyze RSI Divergences for enhanced signals
+    analyzeDivergence(signal, data, indicators) {
+        // Initialize divergence detector
+        const divDetector = new RSIDivergenceDetector({
+            useRSIDivergence: true,
+            lookback: 15,
+            minStrength: 2.0
+        });
+
+        // Extract RSI and price data
+        const rsiData = indicators.rsi.values || [];
+        const priceData = data.map(candle => candle.close);
+
+        // Get divergence analysis
+        const divergence = divDetector.getDivergenceSummary(rsiData, priceData);
+
+        if (divergence.hasDiv) {
+            signal.divergence = divergence;
+            
+            // Add divergence information to signal
+            switch (divergence.type) {
+                case 'bullish_regular':
+                    signal.reasons.push(`🔄 DIVERGÊNCIA BULLISH REGULAR (${divergence.confidence})`);
+                    this.addBullishPoints(signal, this.getDivergencePoints(divergence));
+                    break;
+                    
+                case 'bearish_regular':
+                    signal.reasons.push(`🔄 DIVERGÊNCIA BEARISH REGULAR (${divergence.confidence})`);
+                    this.addBearishPoints(signal, this.getDivergencePoints(divergence));
+                    break;
+                    
+                case 'bullish_hidden':
+                    signal.reasons.push(`🔄 DIVERGÊNCIA BULLISH OCULTA (continuação)`);
+                    this.addBullishPoints(signal, 15);
+                    break;
+                    
+                case 'bearish_hidden':
+                    signal.reasons.push(`🔄 DIVERGÊNCIA BEARISH OCULTA (continuação)`);
+                    this.addBearishPoints(signal, 15);
+                    break;
+            }
+            
+            // High priority for strong regular divergences
+            if (divergence.type.includes('regular') && divergence.confidence === 'very_high') {
+                signal.reasons.push('⚡ DIVERGÊNCIA DE ALTA CONFIANÇA!');
+                signal.priority = 'high';
+            }
+        }
+        
+        return divergence;
+    }
+
+    // Calculate points to add based on divergence strength
+    getDivergencePoints(divergence) {
+        const basePoints = 20;
+        const strengthMultiplier = Math.min(divergence.strength, 5.0);
+        
+        switch (divergence.confidence) {
+            case 'very_high': return Math.round(basePoints * 1.5 * strengthMultiplier);
+            case 'high': return Math.round(basePoints * 1.3 * strengthMultiplier);
+            case 'medium': return Math.round(basePoints * 1.1 * strengthMultiplier);
+            default: return Math.round(basePoints * strengthMultiplier);
         }
     }
 

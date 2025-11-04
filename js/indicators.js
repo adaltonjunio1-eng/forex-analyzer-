@@ -337,5 +337,199 @@ class TechnicalIndicators {
     }
 }
 
+// RSI Divergence Detection System
+class RSIDivergenceDetector {
+    constructor(options = {}) {
+        this.useRSIDivergence = options.useRSIDivergence || true;
+        this.divergenceLookback = options.lookback || 10;
+        this.minDivergenceStrength = options.minStrength || 2.0;
+        this.divergencePoints = [];
+        this.lastDivergenceCheck = 0;
+    }
+
+    // Find pivot points in RSI
+    findRSIPivotPoints(rsiData, priceData, lookback) {
+        const bullishPivots = [];
+        const bearishPivots = [];
+        
+        if (rsiData.length < lookback) return { bullishPivots, bearishPivots };
+        
+        // Find bottoms (bullish divergence potential)
+        for (let i = 3; i < lookback - 3; i++) {
+            if (rsiData[i] < rsiData[i-1] && rsiData[i] < rsiData[i-2] && 
+                rsiData[i] < rsiData[i+1] && rsiData[i] < rsiData[i+2] &&
+                rsiData[i] < 50.0) { // Only bottoms below middle line
+                bullishPivots.push({
+                    index: i,
+                    rsi: rsiData[i],
+                    price: priceData[i],
+                    type: 'bottom'
+                });
+            }
+        }
+        
+        // Find tops (bearish divergence potential)
+        for (let i = 3; i < lookback - 3; i++) {
+            if (rsiData[i] > rsiData[i-1] && rsiData[i] > rsiData[i-2] && 
+                rsiData[i] > rsiData[i+1] && rsiData[i] > rsiData[i+2] &&
+                rsiData[i] > 50.0) { // Only tops above middle line
+                bearishPivots.push({
+                    index: i,
+                    rsi: rsiData[i],
+                    price: priceData[i],
+                    type: 'top'
+                });
+            }
+        }
+        
+        return { bullishPivots, bearishPivots };
+    }
+
+    // Detect regular RSI divergence
+    detectRegularDivergence(rsiData, priceData) {
+        if (!this.useRSIDivergence || rsiData.length < this.divergenceLookback) {
+            return { type: null, strength: 0, description: 'No divergence' };
+        }
+        
+        const lookback = Math.min(this.divergenceLookback, rsiData.length);
+        const { bullishPivots, bearishPivots } = this.findRSIPivotPoints(
+            rsiData.slice(-lookback), 
+            priceData.slice(-lookback), 
+            lookback
+        );
+        
+        // Check bullish divergence (bottom)
+        if (bullishPivots.length >= 2) {
+            const last = bullishPivots[bullishPivots.length - 1];
+            const prev = bullishPivots[bullishPivots.length - 2];
+            
+            // Price makes lower low, RSI makes higher low
+            if (last.price < prev.price && last.rsi > prev.rsi) {
+                const strength = Math.abs((last.rsi - prev.rsi) / (prev.price - last.price));
+                if (strength >= this.minDivergenceStrength) {
+                    return {
+                        type: 'bullish_regular',
+                        strength: strength,
+                        description: 'Regular Bullish Divergence',
+                        signal: 'buy',
+                        confidence: this.calculateConfidence(strength),
+                        points: { last, prev }
+                    };
+                }
+            }
+        }
+        
+        // Check bearish divergence (top)
+        if (bearishPivots.length >= 2) {
+            const last = bearishPivots[bearishPivots.length - 1];
+            const prev = bearishPivots[bearishPivots.length - 2];
+            
+            // Price makes higher high, RSI makes lower high
+            if (last.price > prev.price && last.rsi < prev.rsi) {
+                const strength = Math.abs((prev.rsi - last.rsi) / (last.price - prev.price));
+                if (strength >= this.minDivergenceStrength) {
+                    return {
+                        type: 'bearish_regular',
+                        strength: strength,
+                        description: 'Regular Bearish Divergence',
+                        signal: 'sell',
+                        confidence: this.calculateConfidence(strength),
+                        points: { last, prev }
+                    };
+                }
+            }
+        }
+        
+        return { type: null, strength: 0, description: 'No regular divergence' };
+    }
+
+    // Detect hidden RSI divergence
+    detectHiddenDivergence(rsiData, priceData) {
+        if (!this.useRSIDivergence || rsiData.length < this.divergenceLookback) {
+            return { type: null, strength: 0, description: 'No hidden divergence' };
+        }
+        
+        const lookback = Math.min(this.divergenceLookback, rsiData.length);
+        const { bullishPivots, bearishPivots } = this.findRSIPivotPoints(
+            rsiData.slice(-lookback), 
+            priceData.slice(-lookback), 
+            lookback
+        );
+        
+        // Hidden bullish divergence
+        if (bullishPivots.length >= 2) {
+            const last = bullishPivots[bullishPivots.length - 1];
+            const prev = bullishPivots[bullishPivots.length - 2];
+            
+            // Price makes higher low, RSI makes lower low
+            if (last.price > prev.price && last.rsi < prev.rsi) {
+                return {
+                    type: 'bullish_hidden',
+                    strength: 1.5, // Hidden divergences are continuation signals
+                    description: 'Hidden Bullish Divergence',
+                    signal: 'buy',
+                    confidence: 'medium',
+                    points: { last, prev }
+                };
+            }
+        }
+        
+        // Hidden bearish divergence
+        if (bearishPivots.length >= 2) {
+            const last = bearishPivots[bearishPivots.length - 1];
+            const prev = bearishPivots[bearishPivots.length - 2];
+            
+            // Price makes lower high, RSI makes higher high
+            if (last.price < prev.price && last.rsi > prev.rsi) {
+                return {
+                    type: 'bearish_hidden',
+                    strength: 1.5,
+                    description: 'Hidden Bearish Divergence',
+                    signal: 'sell',
+                    confidence: 'medium',
+                    points: { last, prev }
+                };
+            }
+        }
+        
+        return { type: null, strength: 0, description: 'No hidden divergence' };
+    }
+
+    // Calculate confidence level based on strength
+    calculateConfidence(strength) {
+        if (strength >= 4.0) return 'very_high';
+        if (strength >= 3.0) return 'high';
+        if (strength >= 2.0) return 'medium';
+        return 'low';
+    }
+
+    // Main function to check all divergences
+    checkAllDivergences(rsiData, priceData) {
+        const regular = this.detectRegularDivergence(rsiData, priceData);
+        const hidden = this.detectHiddenDivergence(rsiData, priceData);
+        
+        // Priority to regular divergence
+        if (regular.type) return regular;
+        if (hidden.type) return hidden;
+        
+        return { type: null, strength: 0, description: 'No divergence detected' };
+    }
+
+    // Get divergence summary for UI
+    getDivergenceSummary(rsiData, priceData) {
+        const divergence = this.checkAllDivergences(rsiData, priceData);
+        
+        return {
+            hasDiv: divergence.type !== null,
+            type: divergence.type,
+            signal: divergence.signal || 'neutral',
+            strength: divergence.strength || 0,
+            confidence: divergence.confidence || 'none',
+            description: divergence.description,
+            timestamp: new Date().toISOString()
+        };
+    }
+}
+
 // Export for use in other modules
 window.TechnicalIndicators = TechnicalIndicators;

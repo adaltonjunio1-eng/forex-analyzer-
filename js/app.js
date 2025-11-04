@@ -341,6 +341,65 @@ class ForexApp {
         if (rsiValueEl && this.indicators.rsi) {
             rsiValueEl.textContent = this.indicators.rsi.current.toFixed(1);
         }
+
+        // NEW: Update Divergence Status
+        this.updateDivergenceStatus();
+    }
+
+    // Update divergence status in dashboard
+    updateDivergenceStatus() {
+        // Check for divergence
+        const divDetector = new RSIDivergenceDetector({
+            useRSIDivergence: true,
+            lookback: 15,
+            minStrength: 2.0
+        });
+
+        const rsiData = this.indicators.rsi?.values || [];
+        const priceData = this.data.map(candle => candle.close);
+        const divergence = divDetector.getDivergenceSummary(rsiData, priceData);
+
+        // Update divergence indicator in UI
+        const divergenceEl = document.getElementById('divergenceStatus');
+        if (divergenceEl) {
+            if (divergence.hasDiv) {
+                const icons = {
+                    'bullish_regular': '🔄⬆️',
+                    'bearish_regular': '🔄⬇️',
+                    'bullish_hidden': '🔀⬆️',
+                    'bearish_hidden': '🔀⬇️'
+                };
+                
+                divergenceEl.innerHTML = `
+                    <span class="div-icon">${icons[divergence.type] || '🔄'}</span>
+                    <span class="div-type">${divergence.description}</span>
+                    <span class="div-confidence confidence-${divergence.confidence}">${divergence.confidence}</span>
+                `;
+                divergenceEl.className = `divergence-active ${divergence.signal}`;
+            } else {
+                divergenceEl.innerHTML = '<span class="div-none">Nenhuma divergência</span>';
+                divergenceEl.className = 'divergence-inactive';
+            }
+        }
+
+        // Add divergence to recent signals display
+        if (divergence.hasDiv) {
+            this.showDivergenceAlert(divergence);
+        }
+    }
+
+    // Show divergence alert
+    showDivergenceAlert(divergence) {
+        const alertText = `${divergence.description} detectada! Confiança: ${divergence.confidence}`;
+        Utils.showToast(alertText, divergence.signal === 'buy' ? 'success' : 'warning');
+        
+        // Log divergence for analysis
+        console.log('🔄 Divergência RSI:', {
+            type: divergence.type,
+            signal: divergence.signal,
+            confidence: divergence.confidence,
+            timestamp: divergence.timestamp
+        });
     }
 
     // Update analysis section
