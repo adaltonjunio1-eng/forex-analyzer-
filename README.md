@@ -2,7 +2,7 @@
 
 > **Aplicativo Progressive Web App para análise de força de candles no mercado forex com indicadores técnicos em tempo real**
 
-[![Deploy Status](https://img.shields.io/badge/deploy-github%20pages-brightgreen)](https://your-username.github.io/forex-analyzer)
+[![Deploy Status](https://img.shields.io/badge/deploy-github%20pages-brightgreen)](https://tradingpro.github.io/forex-analyzer)
 [![PWA](https://img.shields.io/badge/PWA-enabled-blue)](https://web.dev/progressive-web-apps/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -30,21 +30,21 @@
 
 ## 🚀 Demo Online
 
-**[🌐 Acessar App](https://your-username.github.io/forex-analyzer/)**
+**[🌐 Acessar App](https://tradingpro.github.io/forex-analyzer/)**
 
 *Ou instale como PWA clicando no botão de instalação no navegador*
 
 ## 📱 Instalação
 
 ### Como PWA (Recomendado)
-1. Acesse: `https://your-username.github.io/forex-analyzer/`
+1. Acesse: `https://tradingpro.github.io/forex-analyzer/`
 2. Clique no botão "📱 Instalar App" 
 3. Ou no mobile: Menu → "Adicionar à tela inicial"
 
 ### Desenvolvimento Local
 ```bash
 # Clone o repositório
-git clone https://github.com/your-username/forex-analyzer.git
+git clone https://github.com/tradingpro/forex-analyzer.git
 cd forex-analyzer
 
 # Instale dependências
@@ -159,7 +159,7 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para de
 
 <div align="center">
 
-**[⭐ Star este projeto](https://github.com/your-username/forex-analyzer/stargazers)** • **[🐛 Reportar Bug](https://github.com/your-username/forex-analyzer/issues)** • **[💡 Sugerir Feature](https://github.com/your-username/forex-analyzer/issues)**
+**[⭐ Star este projeto](https://github.com/tradingpro/forex-analyzer/stargazers)** • **[🐛 Reportar Bug](https://github.com/tradingpro/forex-analyzer/issues)** • **[💡 Sugerir Feature](https://github.com/tradingpro/forex-analyzer/issues)**
 
 Feito com ❤️ para traders
 
