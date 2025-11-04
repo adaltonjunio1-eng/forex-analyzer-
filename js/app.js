@@ -11,6 +11,8 @@ class ForexApp {
         this.chart = null;
         this.volumeChart = null;
         this.signalsManager = new TradingSignals();
+        this.newsAnalyzer = new NewsSentimentAnalyzer();
+        this.newsData = [];
         this.autoRefresh = true;
         this.refreshInterval = 30000; // 30 seconds
         this.refreshTimer = null;
@@ -121,6 +123,43 @@ class ForexApp {
 
         // Settings
         this.bindSettingsEvents();
+        
+        // News events
+        this.bindNewsEvents();
+    }
+
+    // Bind news events
+    bindNewsEvents() {
+        // News filters
+        document.querySelectorAll('.news-filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const sentiment = e.currentTarget.dataset.sentiment;
+                this.filterNews(sentiment);
+                this.updateNewsFilterButtons(e.currentTarget);
+            });
+        });
+
+        // Refresh news button
+        const refreshNewsBtn = document.getElementById('refreshNews');
+        if (refreshNewsBtn) {
+            refreshNewsBtn.addEventListener('click', () => {
+                this.loadNews();
+                Utils.showToast('Notícias atualizadas!', 'success');
+            });
+        }
+
+        // Auto-refresh toggle
+        const autoRefreshNews = document.getElementById('autoRefreshNews');
+        if (autoRefreshNews) {
+            autoRefreshNews.addEventListener('change', (e) => {
+                this.newsAutoRefresh = e.target.checked;
+                if (this.newsAutoRefresh) {
+                    this.startNewsAutoRefresh();
+                } else {
+                    this.stopNewsAutoRefresh();
+                }
+            });
+        }
     }
 
     // Bind settings events
@@ -693,6 +732,146 @@ class ForexApp {
         if (this.volumeChart) this.volumeChart.destroy();
     }
 }
+
+// News Management Methods - Extend ForexApp
+ForexApp.prototype.loadNews = function() {
+    console.log('📰 Loading news...');
+    const mockNews = this.newsAnalyzer.getMockNewsData();
+    this.newsData = this.newsAnalyzer.analyzeNewsStream(mockNews);
+    this.renderNews();
+    this.updateNewsSummary();
+};
+
+ForexApp.prototype.renderNews = function() {
+    const newsFeed = document.getElementById('newsFeed');
+    if (!newsFeed) return;
+    
+    if (this.newsData.length === 0) {
+        newsFeed.innerHTML = '<div class="news-loading"><i class="fas fa-newspaper"></i><p>Nenhuma notícia disponível</p></div>';
+        return;
+    }
+    
+    newsFeed.innerHTML = this.newsData.map(news => {
+        const analysis = news.analysis;
+        const urgencyEmoji = { critical: '🚨', high: '⚠️', medium: '📢', low: '📰' }[analysis.urgency];
+        const timeAgo = this.formatTimeAgo(new Date(news.timestamp));
+        
+        return `
+            <div class="news-item ${analysis.sentiment} ${analysis.urgency === 'critical' ? 'critical' : ''}" data-sentiment="${analysis.sentiment}">
+                <div class="news-item-header">
+                    <h3 class="news-item-title">${news.title}</h3>
+                    <span class="news-urgency">${urgencyEmoji}</span>
+                </div>
+                <div class="news-item-content">${news.content}</div>
+                <div class="news-analysis">
+                    <span class="analysis-badge sentiment ${analysis.sentiment}">
+                        ${analysis.sentiment === 'positive' ? '📈' : analysis.sentiment === 'negative' ? '📉' : '➖'}
+                        ${analysis.sentiment.toUpperCase()} (${analysis.confidence}%)
+                    </span>
+                    <span class="analysis-badge impact ${analysis.impactLevel}">
+                        Impacto: ${analysis.impactLevel.toUpperCase()}
+                    </span>
+                    ${analysis.affectedCurrencies.length > 0 ? `
+                        <div class="affected-currencies">
+                            ${analysis.affectedCurrencies.slice(0, 3).map(c => 
+                                `<span class="currency-tag">${c.currency}</span>`
+                            ).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+                ${analysis.recommendation.action !== 'hold' ? `
+                    <div class="news-recommendation ${analysis.recommendation.action}">
+                        <div class="recommendation-title">💡 Recomendação: ${analysis.recommendation.action.toUpperCase()}</div>
+                        <div class="recommendation-text">${analysis.recommendation.description}</div>
+                    </div>
+                ` : ''}
+                <div class="news-item-meta">
+                    <span class="news-source"><i class="fas fa-newspaper"></i> ${news.source}</span>
+                    <span class="news-timestamp"><i class="fas fa-clock"></i> ${timeAgo}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+};
+
+ForexApp.prototype.updateNewsSummary = function() {
+    const summary = { positive: 0, negative: 0, neutral: 0, critical: 0 };
+    this.newsData.forEach(news => {
+        summary[news.analysis.sentiment]++;
+        if (news.analysis.urgency === 'critical') summary.critical++;
+    });
+    
+    ['positive', 'negative', 'neutral', 'critical'].forEach(type => {
+        const el = document.getElementById(`${type}Count`);
+        if (el) el.textContent = summary[type];
+    });
+};
+
+ForexApp.prototype.filterNews = function(sentiment) {
+    document.querySelectorAll('.news-item').forEach(item => {
+        if (sentiment === 'all') {
+            item.style.display = 'block';
+        } else if (sentiment === 'critical') {
+            item.style.display = item.classList.contains('critical') ? 'block' : 'none';
+        } else {
+            item.style.display = item.dataset.sentiment === sentiment ? 'block' : 'none';
+        }
+    });
+};
+
+ForexApp.prototype.updateNewsFilterButtons = function(activeBtn) {
+    document.querySelectorAll('.news-filter-btn').forEach(btn => btn.classList.remove('active'));
+    activeBtn.classList.add('active');
+};
+
+ForexApp.prototype.startNewsAutoRefresh = function() {
+    this.stopNewsAutoRefresh();
+    this.newsRefreshTimer = setInterval(() => {
+        this.loadNews();
+        console.log('📰 News auto-refreshed');
+    }, 60000);
+};
+
+ForexApp.prototype.stopNewsAutoRefresh = function() {
+    if (this.newsRefreshTimer) {
+        clearInterval(this.newsRefreshTimer);
+        this.newsRefreshTimer = null;
+    }
+};
+
+ForexApp.prototype.formatTimeAgo = function(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    const intervals = { 'ano': 31536000, 'mês': 2592000, 'dia': 86400, 'hora': 3600, 'minuto': 60 };
+    
+    for (const [name, secondsInInterval] of Object.entries(intervals)) {
+        const interval = Math.floor(seconds / secondsInInterval);
+        if (interval >= 1) {
+            return `há ${interval} ${name}${interval > 1 && name !== 'mês' ? 's' : name === 'mês' && interval > 1 ? 'es' : ''}`;
+        }
+    }
+    return 'agora mesmo';
+};
+
+// Override navigateToSection to load news
+const originalNavigate = ForexApp.prototype.navigateToSection;
+ForexApp.prototype.navigateToSection = function(sectionId) {
+    if (originalNavigate) {
+        originalNavigate.call(this, sectionId);
+    } else {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        const section = document.getElementById(sectionId);
+        if (section) section.classList.add('active');
+        const link = document.querySelector(`[href="#${sectionId}"]`);
+        if (link) link.classList.add('active');
+    }
+    
+    if (sectionId === 'news' && (!this.newsData || this.newsData.length === 0)) {
+        this.loadNews();
+        this.newsAutoRefresh = true;
+        this.startNewsAutoRefresh();
+    }
+};
 
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {

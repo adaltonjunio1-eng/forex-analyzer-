@@ -60,6 +60,7 @@
                 <ul class="nav-list">
                     <li><a href="#dashboard" class="nav-link active">Dashboard</a></li>
                     <li><a href="#analysis" class="nav-link">Análise</a></li>
+                    <li><a href="#news" class="nav-link">Notícias</a></li>
                     <li><a href="#signals" class="nav-link">Sinais</a></li>
                     <li><a href="#settings" class="nav-link">Configurações</a></li>
                 </ul>
@@ -278,6 +279,82 @@
             </div>
         </section>
 
+        <!-- News Section -->
+        <section id="news" class="section">
+            <div class="container">
+                <h1 class="section-title">📰 Análise de Notícias Forex</h1>
+                
+                <div class="news-header">
+                    <div class="news-filters">
+                        <button class="news-filter-btn active" data-sentiment="all">
+                            <i class="fas fa-globe"></i> Todas
+                        </button>
+                        <button class="news-filter-btn" data-sentiment="positive">
+                            <i class="fas fa-arrow-up"></i> Positivas
+                        </button>
+                        <button class="news-filter-btn" data-sentiment="negative">
+                            <i class="fas fa-arrow-down"></i> Negativas
+                        </button>
+                        <button class="news-filter-btn" data-sentiment="critical">
+                            <i class="fas fa-exclamation-triangle"></i> Críticas
+                        </button>
+                    </div>
+                    <div class="news-controls">
+                        <button id="refreshNews" class="refresh-news-btn">
+                            <i class="fas fa-sync-alt"></i> Atualizar
+                        </button>
+                        <div class="auto-refresh-toggle">
+                            <label>
+                                <input type="checkbox" id="autoRefreshNews" checked>
+                                <span>Auto-refresh</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- News Summary Cards -->
+                <div class="news-summary">
+                    <div class="summary-card positive">
+                        <div class="summary-icon">📈</div>
+                        <div class="summary-content">
+                            <h3 id="positiveCount">0</h3>
+                            <p>Notícias Positivas</p>
+                        </div>
+                    </div>
+                    <div class="summary-card negative">
+                        <div class="summary-icon">📉</div>
+                        <div class="summary-content">
+                            <h3 id="negativeCount">0</h3>
+                            <p>Notícias Negativas</p>
+                        </div>
+                    </div>
+                    <div class="summary-card neutral">
+                        <div class="summary-icon">➖</div>
+                        <div class="summary-content">
+                            <h3 id="neutralCount">0</h3>
+                            <p>Notícias Neutras</p>
+                        </div>
+                    </div>
+                    <div class="summary-card critical">
+                        <div class="summary-icon">🚨</div>
+                        <div class="summary-content">
+                            <h3 id="criticalCount">0</h3>
+                            <p>Alertas Críticos</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- News Feed -->
+                <div class="news-feed" id="newsFeed">
+                    <!-- News items will be dynamically added here -->
+                    <div class="news-loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Carregando notícias...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Signals Section -->
         <section id="signals" class="section">
             <div class="container">
@@ -382,6 +459,7 @@
     <script src="js/indicators.js"></script>
     <script src="js/patterns.js"></script>
     <script src="js/signals.js"></script>
+    <script src="js/news.js"></script>
     <script src="js/chart.js"></script>
     <script src="js/app.js"></script>
     
