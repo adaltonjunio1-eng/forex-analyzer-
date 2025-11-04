@@ -89,6 +89,7 @@
                             <option value="AUDUSD">AUD/USD - Dólar Australiano</option>
                             <option value="USDCAD">USD/CAD - Dólar vs Canadense</option>
                             <option value="NZDUSD">NZD/USD - Dólar Neozelandês</option>
+                            <option value="NZDUSD">EUR/CAD - Dólar vs Canadense</option>
                         </optgroup>
                         <optgroup label="💎 Metais Preciosos">
                             <option value="XAUUSD">XAU/USD - Ouro vs Dólar</option>
@@ -195,6 +196,19 @@
                                 <span class="div-none">Nenhuma divergência</span>
                             </div>
                             <p>Divergência RSI</p>
+                        </div>
+                    </div>
+
+                    <!-- Pullback Indicator Card -->
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div id="pullbackStatus" class="pullback-inactive">
+                                💤 Aguardando Rompimento
+                            </div>
+                            <p>Pullback Avançado</p>
                         </div>
                     </div>
                 </div>
@@ -460,6 +474,7 @@
     <script src="js/patterns.js"></script>
     <script src="js/signals.js"></script>
     <script src="js/news.js"></script>
+    <script src="js/pullback.js"></script>
     <script src="js/chart.js"></script>
     <script src="js/app.js"></script>
     

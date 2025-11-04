@@ -13,6 +13,21 @@ class ForexApp {
         this.signalsManager = new TradingSignals();
         this.newsAnalyzer = new NewsSentimentAnalyzer();
         this.newsData = [];
+        this.pullbackIndicator = new PullbackIndicator({
+            emaFast: 20,
+            emaSlow: 50,
+            atrPeriod: 14,
+            atrMinMult: 0.2,
+            enablePush: true,
+            arrowOffset: 10,
+            maxLevels: 5,
+            timeframe: 'M15'
+        });
+        this.pullbackData = {
+            levels: [],
+            signals: [],
+            lastAnalysis: null
+        };
         this.autoRefresh = true;
         this.refreshInterval = 30000; // 30 seconds
         this.refreshTimer = null;
@@ -723,6 +738,11 @@ class ForexApp {
         this.updateDashboard();
         this.updateAnalysisSection();
         this.updateSignalsSection();
+        
+        // Analisar pullback com os dados atuais
+        if (typeof this.analyzePullback === 'function') {
+            this.analyzePullback();
+        }
     }
 
     // Cleanup
@@ -945,6 +965,168 @@ window.addEventListener('beforeunload', () => {
         window.forexApp.destroy();
     }
 });
+
+// Pullback Indicator Integration Methods
+ForexApp.prototype.analyzePullback = function() {
+    if (!this.data || this.data.length < 50) {
+        console.warn('Insufficient data for pullback analysis');
+        return;
+    }
+
+    try {
+        // Preparar dados dos candles
+        const candles = this.data.map((item, index) => {
+            const open = item.open;
+            const close = item.close;
+            const high = Math.max(open, close) * (1 + Math.random() * 0.002);
+            const low = Math.min(open, close) * (1 - Math.random() * 0.002);
+
+            return {
+                time: Date.now() - (this.data.length - index) * 15 * 60 * 1000,
+                open,
+                high,
+                low,
+                close
+            };
+        });
+
+        // Analisar com o indicador
+        const result = this.pullbackIndicator.analyze(candles);
+        
+        this.pullbackData = {
+            levels: result.levels,
+            signals: result.signals,
+            lastAnalysis: Date.now(),
+            stats: this.pullbackIndicator.getStats()
+        };
+
+        // Atualizar UI com níveis ativos
+        this.updatePullbackStatus();
+
+        // Se houver novos sinais, processar
+        if (result.signals.length > 0) {
+            result.signals.forEach(signal => {
+                console.log('🎯 Pullback Signal:', signal);
+                this.processPullbackSignal(signal);
+            });
+        }
+
+        // Limpar níveis antigos (maiores que 2 horas)
+        this.pullbackIndicator.cleanupOldLevels(120);
+
+    } catch (error) {
+        console.error('Error analyzing pullback:', error);
+    }
+};
+
+ForexApp.prototype.processPullbackSignal = function(signal) {
+    // Adicionar ao histórico de sinais
+    const signalData = {
+        type: 'PULLBACK',
+        direction: signal.type,
+        price: signal.price,
+        confidence: signal.confidence,
+        time: signal.time,
+        pair: this.currentPair,
+        timeframe: this.currentTimeframe
+    };
+
+    // Salvar no localStorage
+    const history = JSON.parse(localStorage.getItem('pullbackSignals') || '[]');
+    history.unshift(signalData);
+    localStorage.setItem('pullbackSignals', JSON.stringify(history.slice(0, 100)));
+
+    // Atualizar display
+    this.updatePullbackStatus('signal');
+};
+
+ForexApp.prototype.updatePullbackStatus = function(state = 'active') {
+    const statusElement = document.getElementById('pullbackStatus');
+    if (!statusElement) return;
+
+    const activeLevels = this.pullbackData.levels ? this.pullbackData.levels.length : 0;
+    const stats = this.pullbackData.stats || {};
+
+    if (state === 'signal') {
+        statusElement.className = 'pullback-signal';
+        statusElement.innerHTML = `
+            🎯 <strong>Sinal Pullback Detectado!</strong>
+            <span style="margin-left: 8px">Confiança: ${stats.lastSignal?.confidence || 0}%</span>
+        `;
+        
+        setTimeout(() => {
+            this.updatePullbackStatus(activeLevels > 0 ? 'active' : 'inactive');
+        }, 5000);
+    } else if (activeLevels > 0) {
+        statusElement.className = 'pullback-active';
+        statusElement.innerHTML = `
+            📊 <strong>${activeLevels} Nível${activeLevels > 1 ? 'is' : ''} Ativo${activeLevels > 1 ? 's' : ''}</strong>
+            <span style="margin-left: 8px">| Total Sinais: ${stats.totalSignals || 0}</span>
+        `;
+    } else {
+        statusElement.className = 'pullback-inactive';
+        statusElement.innerHTML = `
+            💤 Aguardando Rompimento
+            <span style="margin-left: 8px">| Sinais: ${stats.totalSignals || 0}</span>
+        `;
+    }
+};
+
+ForexApp.prototype.drawPullbackLevels = function() {
+    // Remove níveis antigos do canvas
+    const container = document.querySelector('.chart-container');
+    if (!container) return;
+
+    const oldLines = container.querySelectorAll('.pullback-level-line');
+    oldLines.forEach(line => line.remove());
+
+    // Desenhar novos níveis
+    if (!this.pullbackData.levels || this.pullbackData.levels.length === 0) return;
+
+    const chartHeight = container.offsetHeight;
+    const priceRange = this.getPriceRange();
+    if (!priceRange) return;
+
+    this.pullbackData.levels.forEach(level => {
+        const pricePercent = (level.price - priceRange.min) / (priceRange.max - priceRange.min);
+        const yPosition = chartHeight - (pricePercent * chartHeight);
+
+        const line = document.createElement('div');
+        line.className = `pullback-level-line ${level.type}`;
+        line.style.top = `${yPosition}px`;
+        line.style.left = '0';
+        line.style.right = '0';
+        line.title = `Pullback ${level.type} @ ${level.price.toFixed(5)}`;
+
+        container.appendChild(line);
+    });
+};
+
+ForexApp.prototype.getPriceRange = function() {
+    if (!this.data || this.data.length === 0) return null;
+
+    const prices = this.data.flatMap(d => [d.open, d.close, d.high, d.low]);
+    return {
+        min: Math.min(...prices),
+        max: Math.max(...prices)
+    };
+};
+
+ForexApp.prototype.configurePullbackIndicator = function(config) {
+    this.pullbackIndicator.updateConfig(config);
+    this.analyzePullback();
+};
+
+ForexApp.prototype.getPullbackHistory = function() {
+    return JSON.parse(localStorage.getItem('pullbackSignals') || '[]');
+};
+
+ForexApp.prototype.clearPullbackHistory = function() {
+    localStorage.removeItem('pullbackSignals');
+    this.pullbackIndicator.reset();
+    this.pullbackData = { levels: [], signals: [], lastAnalysis: null };
+    this.updatePullbackStatus('inactive');
+};
 
 // Initialize PWA Manager
 window.addEventListener('load', () => {
