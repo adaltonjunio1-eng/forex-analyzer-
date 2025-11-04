@@ -86,7 +86,7 @@ class ForexApp {
         // Mobile menu
         const mobileMenu = document.querySelector('.mobile-menu');
         if (mobileMenu) {
-            mobileMenu.addEventListener('click', this.toggleMobileMenu);
+            mobileMenu.addEventListener('click', () => this.toggleMobileMenu());
         }
 
         // Currency pair selection

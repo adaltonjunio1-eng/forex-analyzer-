@@ -698,6 +698,30 @@ body {
     
     .nav {
         display: none;
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        background: var(--surface-color);
+        flex-direction: column;
+        padding: var(--spacing-md);
+        border-bottom: 1px solid var(--border-color);
+        box-shadow: var(--shadow-lg);
+        z-index: 999;
+    }
+    
+    .nav.active {
+        display: flex;
+    }
+    
+    .nav-link {
+        padding: var(--spacing-md);
+        border-bottom: 1px solid var(--border-color);
+        text-align: center;
+    }
+    
+    .nav-link:last-child {
+        border-bottom: none;
     }
     
     .mobile-menu {
