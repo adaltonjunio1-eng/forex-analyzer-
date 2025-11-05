@@ -48,8 +48,9 @@ class ForexApp {
             lastAnalysis: null
         };
         this.autoRefresh = true;
-        this.refreshInterval = 30000; // 30 seconds
+        this.refreshInterval = 5000; // 5 seconds - TEMPO REAL
         this.refreshTimer = null;
+        this.realtimeAnalysisEnabled = true; // Flag para análise em tempo real contínua
 
         console.log('⚙️ ForexApp properties initialized');
         this.init();
@@ -63,6 +64,7 @@ class ForexApp {
         this.loadSettings();
         this.generateInitialData();
         this.startAutoRefresh();
+        this.startRealtimeAnalysis(); // Inicia análise contínua
         this.updateUI();
         console.log('✅ ForexApp initialization completed');
     }
@@ -289,71 +291,68 @@ class ForexApp {
         }
     }
 
-    // Analyze market data
+    // Analyze market data (REAL-TIME - sem delay)
     analyzeMarket(showLoading = false) {
         if (showLoading) {
             Utils.showLoading();
         }
 
-        // Simulate API delay
-        setTimeout(() => {
-            try {
-                console.log('Starting market analysis...');
-                console.log('Data length:', this.data.length);
-                
-                // Calculate technical indicators
-                this.indicators = TechnicalIndicators.calculateAllIndicators(this.data);
-                console.log('Indicators calculated:', Object.keys(this.indicators));
-                
-                // Detect candlestick patterns
-                this.patterns = CandlestickPatterns.detectPatterns(this.data);
-                console.log('Patterns detected:', this.patterns.length);
-                
-                // Generate trading signal
-                const signal = this.signalsManager.generateSignal(this.data, this.indicators, this.patterns);
-                console.log('Signal generated:', signal ? signal.type : 'none');
-                
-                // Update charts
-                if (this.chart) {
-                    this.chart.updateChart(this.data, this.indicators);
-                    console.log('Main chart updated');
-                } else {
-                    console.error('Main chart not available');
-                }
-                
-                if (this.volumeChart) {
-                    this.volumeChart.updateChart(this.data.slice(-20)); // Show last 20 candles
-                    console.log('Volume chart updated');
-                }
-                
-                // Update UI
-                this.updateDashboard();
-                this.updateAnalysisSection();
-                this.updateSignalsSection();
-                console.log('UI updated');
-                
-                // Cache data for offline use (only if online)
-                if (!this.isOffline && navigator.onLine) {
-                    this.cacheCurrentData();
-                }
-                
-                // Generate alert if strong signal
-                if (signal) {
-                    this.signalsManager.generateAlert(signal);
-                }
-                
-                // Add new data for next cycle (simulate real-time)
-                this.addNewCandle();
-                
-                Utils.showToast('Análise concluída', 'success');
-                
-            } catch (error) {
-                console.error('Error analyzing market:', error);
-                Utils.showToast('Erro na análise', 'error');
-            } finally {
-                Utils.hideLoading();
+        try {
+            console.log('🔥 Starting REAL-TIME market analysis...');
+            console.log('Data length:', this.data.length);
+            
+            // Calculate technical indicators (INSTANTÂNEO)
+            this.indicators = TechnicalIndicators.calculateAllIndicators(this.data);
+            console.log('✓ Indicators calculated:', Object.keys(this.indicators));
+            
+            // Detect candlestick patterns (INSTANTÂNEO)
+            this.patterns = CandlestickPatterns.detectPatterns(this.data);
+            console.log('✓ Patterns detected:', this.patterns.length);
+            
+            // Generate trading signal (INSTANTÂNEO)
+            const signal = this.signalsManager.generateSignal(this.data, this.indicators, this.patterns);
+            console.log('✓ Signal generated:', signal ? signal.type : 'none');
+            
+            // Update charts (REAL-TIME)
+            if (this.chart) {
+                this.chart.updateChart(this.data, this.indicators);
+                console.log('✓ Main chart updated');
+            } else {
+                console.error('❌ Main chart not available');
             }
-        }, 1000);
+            
+            if (this.volumeChart) {
+                this.volumeChart.updateChart(this.data.slice(-20)); // Show last 20 candles
+                console.log('✓ Volume chart updated');
+            }
+            
+            // Update UI (INSTANTÂNEO)
+            this.updateDashboard();
+            this.updateAnalysisSection();
+            this.updateSignalsSection();
+            console.log('✓ UI updated');
+            
+            // Cache data for offline use (only if online)
+            if (!this.isOffline && navigator.onLine) {
+                this.cacheCurrentData();
+            }
+            
+            // Generate alert if strong signal (INSTANTÂNEO)
+            if (signal) {
+                this.signalsManager.generateAlert(signal);
+            }
+            
+            // Add new candle for next cycle (simulate real-time)
+            this.addNewCandle();
+            
+            Utils.showToast('✓ Análise em tempo real concluída', 'success');
+            
+        } catch (error) {
+            console.error('❌ Error analyzing market:', error);
+            Utils.showToast('Erro na análise', 'error');
+        } finally {
+            Utils.hideLoading();
+        }
     }
 
     // Add new candle (simulate real-time data)
@@ -668,6 +667,54 @@ class ForexApp {
         }
     }
 
+    // Start real-time continuous analysis (NOVO - sem delay)
+    startRealtimeAnalysis() {
+        console.log('⚡ Starting REALTIME continuous analysis...');
+        
+        // Análise imediata
+        this.performRealtimeAnalysis();
+        
+        // Continuar análise a cada 3 segundos (mais rápido que refresh)
+        this.realtimeTimer = setInterval(() => {
+            if (this.realtimeAnalysisEnabled && this.data.length > 0) {
+                this.performRealtimeAnalysis();
+            }
+        }, 3000); // 3 segundos - análise super rápida
+    }
+
+    // Perform real-time analysis (sem UI loading)
+    performRealtimeAnalysis() {
+        try {
+            // Análise silenciosa e rápida
+            if (typeof this.analyzePullback === 'function') {
+                this.analyzePullback();
+            }
+            
+            if (typeof this.analyzeMultiSignalPullback === 'function') {
+                this.analyzeMultiSignalPullback();
+            }
+            
+            // Atualizar indicadores em background
+            if (this.data.length > 0) {
+                this.indicators = TechnicalIndicators.calculateAllIndicators(this.data);
+                this.patterns = CandlestickPatterns.detectPatterns(this.data);
+            }
+            
+            console.log('⚡ Realtime analysis tick');
+        } catch (error) {
+            console.error('❌ Realtime analysis error:', error);
+        }
+    }
+
+    // Stop real-time analysis
+    stopRealtimeAnalysis() {
+        if (this.realtimeTimer) {
+            clearInterval(this.realtimeTimer);
+            this.realtimeTimer = null;
+        }
+        this.realtimeAnalysisEnabled = false;
+    }
+
     // Toggle auto refresh
     toggleAutoRefresh() {
         if (this.autoRefresh) {
@@ -772,6 +819,7 @@ class ForexApp {
     // Cleanup
     destroy() {
         this.stopAutoRefresh();
+        this.stopRealtimeAnalysis(); // Parar análise em tempo real
         if (this.chart) this.chart.destroy();
         if (this.volumeChart) this.volumeChart.destroy();
     }
