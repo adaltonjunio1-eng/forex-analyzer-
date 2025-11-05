@@ -1,5 +1,5 @@
 // Service Worker for Forex Analyzer PWA
-const CACHE_NAME = 'forex-analyzer-v1.3.0';
+const CACHE_NAME = 'forex-analyzer-v1.4.0';
 const STATIC_CACHE = `${CACHE_NAME}-static`;
 const DYNAMIC_CACHE = `${CACHE_NAME}-dynamic`;
 const API_CACHE = `${CACHE_NAME}-api`;
@@ -16,6 +16,9 @@ const STATIC_ASSETS = [
     './js/patterns.js',
     './js/signals.js',
     './js/utils.js',
+    './js/news.js',
+    './js/pullback.js',
+    './js/pullback-multi.js',
     'https://cdn.jsdelivr.net/npm/chart.js',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
 ];
