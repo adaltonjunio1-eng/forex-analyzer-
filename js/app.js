@@ -28,6 +28,25 @@ class ForexApp {
             signals: [],
             lastAnalysis: null
         };
+        this.pullbackMultiSignal = new PullbackMultiSignal({
+            emaFastPeriod: 20,
+            emaSlowPeriod: 50,
+            bbPeriod: 20,
+            bbDeviation: 2.0,
+            rsiPeriod: 14,
+            lookbackImpulse: 60,
+            wickFactor: 200,
+            emaTouchPips: 8.0,
+            minSignalsToConfirm: 2,
+            alertPopup: false, // desabilitado para não interferir com toasts
+            alertSound: true,
+            alertPush: true,
+            timeframe: 'M15'
+        });
+        this.pullbackMultiData = {
+            signals: [],
+            lastAnalysis: null
+        };
         this.autoRefresh = true;
         this.refreshInterval = 30000; // 30 seconds
         this.refreshTimer = null;
@@ -743,6 +762,11 @@ class ForexApp {
         if (typeof this.analyzePullback === 'function') {
             this.analyzePullback();
         }
+        
+        // Analisar Multi-Signal Pullback
+        if (typeof this.analyzeMultiSignalPullback === 'function') {
+            this.analyzeMultiSignalPullback();
+        }
     }
 
     // Cleanup
@@ -1126,6 +1150,128 @@ ForexApp.prototype.clearPullbackHistory = function() {
     this.pullbackIndicator.reset();
     this.pullbackData = { levels: [], signals: [], lastAnalysis: null };
     this.updatePullbackStatus('inactive');
+};
+
+// Multi-Signal Pullback Methods
+ForexApp.prototype.analyzeMultiSignalPullback = function() {
+    if (!this.data || this.data.length < 60) {
+        console.warn('Insufficient data for multi-signal pullback analysis');
+        return;
+    }
+
+    try {
+        // Preparar dados dos candles
+        const candles = this.data.map((item, index) => {
+            const open = item.open;
+            const close = item.close;
+            const high = Math.max(open, close) * (1 + Math.random() * 0.002);
+            const low = Math.min(open, close) * (1 - Math.random() * 0.002);
+
+            return {
+                time: Date.now() - (this.data.length - index) * 15 * 60 * 1000,
+                open,
+                high,
+                low,
+                close
+            };
+        });
+
+        // Analisar com o indicador Multi-Signal
+        const result = this.pullbackMultiSignal.analyze(candles);
+        
+        this.pullbackMultiData = {
+            signals: result.allSignals,
+            lastAnalysis: Date.now(),
+            stats: this.pullbackMultiSignal.getStats()
+        };
+
+        // Atualizar UI
+        this.updateMultiSignalStatus(result.newSignal);
+
+        // Se houver novo sinal, processar
+        if (result.newSignal) {
+            console.log('🎯 Multi-Signal Pullback:', result.newSignal);
+            this.processMultiSignal(result.newSignal);
+        }
+
+    } catch (error) {
+        console.error('Error analyzing multi-signal pullback:', error);
+    }
+};
+
+ForexApp.prototype.processMultiSignal = function(signal) {
+    // Adicionar ao histórico
+    const signalData = {
+        type: 'MULTI-SIGNAL',
+        direction: signal.type,
+        price: signal.price,
+        confidence: signal.confidence,
+        confirmedSignals: signal.confirmedSignals,
+        signals: signal.signals,
+        time: signal.time,
+        pair: this.currentPair,
+        timeframe: this.currentTimeframe
+    };
+
+    // Salvar no localStorage
+    const history = JSON.parse(localStorage.getItem('multiSignalHistory') || '[]');
+    history.unshift(signalData);
+    localStorage.setItem('multiSignalHistory', JSON.stringify(history.slice(0, 100)));
+
+    // Atualizar display com animação
+    this.updateMultiSignalStatus(signal);
+};
+
+ForexApp.prototype.updateMultiSignalStatus = function(newSignal = null) {
+    const statusElement = document.getElementById('pullbackMultiStatus');
+    if (!statusElement) return;
+
+    const stats = this.pullbackMultiData.stats || {};
+
+    if (newSignal) {
+        statusElement.className = 'pullback-multi-signal';
+        const signalsText = Object.entries(newSignal.signals)
+            .filter(([key, value]) => value)
+            .map(([key]) => key.substring(0, 3).toUpperCase())
+            .join('+');
+        
+        statusElement.innerHTML = `
+            🎯 <strong>Sinal ${newSignal.type}!</strong>
+            <span style="margin-left: 8px">${newSignal.confirmedSignals}/4 (${signalsText})</span>
+        `;
+        
+        setTimeout(() => {
+            this.updateMultiSignalStatus();
+        }, 6000);
+    } else if (stats.totalSignals > 0) {
+        statusElement.className = 'pullback-multi-active';
+        statusElement.innerHTML = `
+            📊 <strong>Multi-Signal Ativo</strong>
+            <span style="margin-left: 8px">| ${stats.totalSignals} sinais</span>
+        `;
+    } else {
+        statusElement.className = 'pullback-multi-inactive';
+        statusElement.innerHTML = `
+            🔍 Aguardando Sinais (0/4)
+            <span style="margin-left: 8px">| Mín: ${this.pullbackMultiSignal.config.minSignalsToConfirm}</span>
+        `;
+    }
+};
+
+ForexApp.prototype.getMultiSignalHistory = function() {
+    return JSON.parse(localStorage.getItem('multiSignalHistory') || '[]');
+};
+
+ForexApp.prototype.clearMultiSignalHistory = function() {
+    localStorage.removeItem('multiSignalHistory');
+    this.pullbackMultiSignal.reset();
+    this.pullbackMultiData = { signals: [], lastAnalysis: null };
+    this.updateMultiSignalStatus();
+};
+
+ForexApp.prototype.configureMultiSignal = function(config) {
+    this.pullbackMultiSignal.updateConfig(config);
+    this.analyzeMultiSignalPullback();
 };
 
 // Initialize PWA Manager
